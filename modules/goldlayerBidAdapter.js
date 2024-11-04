@@ -16,12 +16,12 @@ export const spec = {
   supportedMediaTypes: [BANNER, VIDEO, NATIVE],
   isBidRequestValid: function (bid) {
     // Check if the bid has all neccessary parameters for goldlayer
-    utils.logError('isBidRequestValid', bid);
+    utils.logInfo('isBidRequestValid', bid);
     return !!(bid.params.publisherId);
   },
   buildRequests: function (validBidRequests, bidderRequest) {
     // Transform prebidJS request into goldlayer request
-    utils.logError('buildRequests', validBidRequests, bidderRequest);
+    utils.logInfo('buildRequests', validBidRequests, bidderRequest);
   },
   getUserSyncs: function(syncOptions, serverResponses, gdprConsent, uspConsent) {},
   onTimeout: function(timeoutData) {},
