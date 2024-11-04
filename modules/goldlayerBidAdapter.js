@@ -15,6 +15,8 @@ export const spec = {
   gvlid: GVLID,
   supportedMediaTypes: [BANNER, VIDEO, NATIVE],
   isBidRequestValid: function (bid) {
+    // Check all parameters that can be remapped to GL 
+
     // Check if the bid has all neccessary parameters for goldlayer
     utils.logInfo('isBidRequestValid', bid);
     return !!(bid.params.publisherId);
@@ -23,13 +25,19 @@ export const spec = {
     // Transform prebidJS request into goldlayer request
     utils.logInfo('buildRequests', validBidRequests, bidderRequest);
   },
+  // Skip for now
   getUserSyncs: function(syncOptions, serverResponses, gdprConsent, uspConsent) {},
+  // Skip for now
   onTimeout: function(timeoutData) {},
+  // Skip for now
   onBidWon: function(bid) {},
+  // Skip for now
   onSetTargeting: function(bid) {},
+  // Forward error to logging server / endpoint
   onBidderError: function({ error, bidderRequest }) {
     utils.logError('Error in goldlayer adapter', error);
   },
+  // Forward success to logging server / endpoint
   onAdRenderSucceeded: function(bid) {},
 }
 
