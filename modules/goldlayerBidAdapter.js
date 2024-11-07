@@ -6,7 +6,7 @@ import { registerBidder } from '../src/adapters/bidderFactory.js';
 /* Constants */
 const BIDDER_CODE = 'goldlayer';
 const GVLID = 580;
-const URL = 'https://goldlayer-api.prod.gbads.net/bid';
+const URL = 'https://goldlayer-api.prod.gbads.net/bid/pbjs';
 
 /* Mapping */
 const convertToProprietaryData = (validBidRequests, bidderRequest) => {
@@ -75,17 +75,42 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
   return requestData;
 }
 
+const convertProprietaryResponseToBidResponses = (serverResponse, bidRequest) => {
+  const bidRequests = bidRequest?.bidderRequest?.bids || [];
+  const creativeGroups = serverResponse?.body?.creatives || {};
+
+  return bidRequests.reduce((bidResponses, bidRequest) => {
+    const matchingCreativeGroup = creativeGroups[bidRequest.adUnitCode] || [];
+    const matchingBidResponses = matchingCreativeGroup.map((creative) => {
+      return {
+        requestId: bidRequest.bidId,
+        cpm: creative.cpm,
+        currency: creative.currency,
+        width: creative.width,
+        height: creative.height,
+        creativeId: creative.creativeId,
+        dealId: creative.dealId,
+        netRevenue: creative.netRevenue,
+        ttl: creative.ttl,
+        ad: creative.ad,
+        vastUrl: creative.vastUrl,
+        vastXml: creative.vastXml,
+        mediaType: creative.mediaType,
+        meta: creative.meta,
+      };
+    });
+    return [...bidResponses, ...matchingBidResponses];
+  }, []);
+}
+
 export const spec = {
   code: BIDDER_CODE,
   gvlid: GVLID,
   supportedMediaTypes: [BANNER, VIDEO, NATIVE],
   isBidRequestValid: function (bid) {
-    // Check for publisher environment id
     return typeof bid.params.publisherId === 'string';
   },
   buildRequests: function (validBidRequests, bidderRequest) {
-    // Transform prebidJS request into goldlayer request
-    utils.logInfo('buildRequests', validBidRequests, bidderRequest);
     const data = convertToProprietaryData(validBidRequests, bidderRequest);
     return [{
       method: 'POST',
@@ -97,6 +122,10 @@ export const spec = {
         contentType: 'application/json',
       }
     }];
+  },
+  interpretResponse: function (serverResponse, request) {
+    const bids = convertProprietaryResponseToBidResponses(serverResponse, request);
+    return bids
   },
   // Skip for now
   getUserSyncs: function(syncOptions, serverResponses, gdprConsent, uspConsent) {},
