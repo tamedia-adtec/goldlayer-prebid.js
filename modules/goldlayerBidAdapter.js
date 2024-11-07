@@ -51,7 +51,7 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
   }
 
   // Set contextInfo
-  requestData.contextInfo.contentUrl = bidderRequest?.ortb2?.site?.page;
+  requestData.contextInfo.contentUrl = bidderRequest.refererInfo.canonicalUrl || bidderRequest.refererInfo.topmostLocation;
 
   // Set appInfo
   requestData.appInfo.id = bidderRequest?.ortb2?.site?.domain;
@@ -59,8 +59,8 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
   // Set userInfo
   requestData.userInfo.ip = undefined;
   requestData.userInfo.ifa = undefined;
-  requestData.userInfo.ppid = [];
   requestData.userInfo.ua = bidderRequest?.ortb2?.device?.ua;
+  requestData.userInfo.ppid = []
 
   // Set slots
   requestData.slots = validBidRequests.map((bid) => {
@@ -112,6 +112,7 @@ export const spec = {
   },
   buildRequests: function (validBidRequests, bidderRequest) {
     const data = convertToProprietaryData(validBidRequests, bidderRequest);
+    utils.logInfo('Bidder request', bidderRequest);
     return [{
       method: 'POST',
       url: URL,
@@ -134,7 +135,9 @@ export const spec = {
   // Skip for now
   onBidWon: function(bid) {},
   // Skip for now
-  onSetTargeting: function(bid) {},
+  onSetTargeting: function(bid) {
+    utils.logInfo('Targeting set', bid);
+  },
   // Forward error to logging server / endpoint
   onBidderError: function({ error, bidderRequest }) {
     utils.logError('Error in goldlayer adapter', error);

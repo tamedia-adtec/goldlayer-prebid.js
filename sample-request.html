@@ -1,62 +1,72 @@
 <html>
-    <head>
-        <title>Sample Request with Targeting</title>
-    </head>
-    <body>
-        <script src="./build/dev/prebid.js"></script>
-        <script>
-        // Define your ad unit configuration
-        var adUnits = [{
-            code: '/46753895/de-20minuten.ch/inside-full-content-pos1/ostschweiz', 
-            mediaTypes: {
-                banner: {
-                    sizes: [[300,50],[300,250],[300,600],[320,50],[320,480],[320,64],[320,160],[320,416],[336,280]]
-                }
-            },
-            bids: [{
-                bidder: 'goldlayer', 
-                params: {
-                    publisherId: 'de-20minuten.ch',
-                    customTargeting: {
-                        gpsenabled: "false",
-                        fr: "false",
-                        pagetype: "story",
-                        darkmode: "false",
-                        userloggedin: "false",
-                        iosbuild: "24110",
-                        language: "de",
-                        storyId: "103211763",
-                        connection: "wifi"
-                    }
-                }
-            }]
-        }];
-
-        // Set Prebid configurations
-        pbjs.setConfig({
-            debug: true,
-            cache: {
-                url: 'https://prebid.adnxs.com/pbc/v1/cache'
-            },
-            s2sConfig: {
-                accountId: '1234',
-                bidders: ['appnexus'],
-                timeout: 1000,
-                endpoint: 'https://prebid.adnxs.com/pbs/v1/openrtb2/auction',
-            },
-            timeout: 2000
-        });
-
-        // Initialize ad units with Prebid
-        pbjs.addAdUnits(adUnits);
-
-        // Request bids
-        pbjs.requestBids({
-            bidsBackHandler: function(bidResponses) {
-                console.log('Bid responses:', bidResponses);
-                pbjs.setTargetingForGPTAsync();
+<head>
+    <title>Sample Request with PPID</title>
+</head>
+<body>
+    <script src="./build/dev/prebid.js"></script>
+    <script>
+    // Define your ad unit configuration
+    var adUnits = [{
+        code: '/46753895/de-20minuten.ch/inside-full-content-pos1/ostschweiz', 
+        mediaTypes: {
+            banner: {
+                sizes: [[300,50],[300,250],[300,600],[320,50],[320,480],[320,64],[320,160],[320,416],[336,280]]
             }
-        });
-        </script>
-    </body>
+        },
+        bids: [{
+            bidder: 'goldlayer', 
+            params: {
+                publisherId: 'de-20minuten.ch',
+                customTargeting: {
+                    gpsenabled: "false",
+                    fr: "false",
+                    pagetype: "story",
+                    darkmode: "false",
+                    userloggedin: "false",
+                    iosbuild: "24110",
+                    language: "de",
+                    storyId: "103211763",
+                    connection: "wifi"
+                }
+            }
+        }]
+    }];
+
+    // Set Prebid configurations with PPID (Publisher Provided Identifier) support
+    pbjs.setConfig({
+        debug: true,
+        cache: {
+            url: 'https://prebid.adnxs.com/pbc/v1/cache'
+        },
+        s2sConfig: {
+            accountId: '1234',
+            bidders: ['appnexus'],
+            timeout: 1000,
+            endpoint: 'https://prebid.adnxs.com/pbs/v1/openrtb2/auction',
+        },
+        timeout: 2000,
+        userSync: {
+            userIds: [{
+                name: 'oneid.live',
+                value: '0275ae5c-6b8c-4848-ba3e-d829938b92d7' 
+            }, {
+                name: 'goldbach.com',
+                value: '9430a3dc8b7b69cb41119b25702301e6'
+            }],
+            auctionDelay: 50 // Delay to ensure user ID is available before the auction
+        }
+    });
+
+    // Initialize ad units with Prebid
+    pbjs.addAdUnits(adUnits);
+
+    // Request bids
+    pbjs.requestBids({
+        bidsBackHandler: function(bidResponses) {
+            console.log('Bid responses:', bidResponses);
+            pbjs.setTargetingForGPTAsync();
+        }
+    });
+    </script>
+</body>
 </html>
