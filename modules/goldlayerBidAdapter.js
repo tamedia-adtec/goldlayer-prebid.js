@@ -7,12 +7,81 @@ import { registerBidder } from '../src/adapters/bidderFactory.js';
 const BIDDER_CODE = 'goldlayer';
 const GVLID = 580;
 const URL = 'https://goldlayer-api.prod.gbads.net/bid/pbjs';
+const TARGETING_KEYS = {
+  // request
+  GEO_LAT: 'lat',
+  GEO_LON: 'long',
+  GEO_ZIP: 'zip',
+  CONNECTION_TYPE: 'connection',
+  // slot
+  VIDEO_DURATION: 'duration'
+};
 
 /* Mapping */
+const convertToCustomTargeting = (bidderRequest) => {
+  const customTargeting = {};
+
+  // geo - lat/long
+  if (bidderRequest?.ortb2?.device?.geo) {
+    if (bidderRequest?.ortb2?.device?.geo?.lon) {
+      customTargeting[TARGETING_KEYS.GEO_LON] = bidderRequest.ortb2.device.geo.lon
+    }
+    if (bidderRequest?.ortb2?.device?.geo?.lat) {
+      customTargeting[TARGETING_KEYS.GEO_LAT] = bidderRequest.ortb2.device.geo.lat
+    }
+  }
+
+  // connection
+  if (bidderRequest?.ortb2?.device?.connectiontype) {
+    switch (bidderRequest.ortb2.device.connectiontype) {
+      case 1:
+        customTargeting[TARGETING_KEYS.CONNECTION_TYPE] = 'ethernet';
+        break;
+      case 2:
+        customTargeting[TARGETING_KEYS.CONNECTION_TYPE] = 'wifi';
+        break;
+      case 4:
+        customTargeting[TARGETING_KEYS.CONNECTION_TYPE] = '2G';
+        break;
+      case 5:
+        customTargeting[TARGETING_KEYS.CONNECTION_TYPE] = '3G';
+        break;
+      case 6:
+        customTargeting[TARGETING_KEYS.CONNECTION_TYPE] = '4G';
+        break;
+    }
+  }
+
+  // zip
+  if (bidderRequest?.ortb2?.device?.geo?.zip) {
+    customTargeting[TARGETING_KEYS.GEO_ZIP] = bidderRequest.ortb2.device.geo.zip;
+  }
+
+  return customTargeting;
+}
+
+const convertToCustomSlotTargeting = (validBidRequest) => {
+  const customTargeting = {};
+
+  // video duration
+  if (validBidRequest.mediaTypes?.[VIDEO]) {
+    if (validBidRequest.params?.video?.maxduration) {
+      const duration = validBidRequest.params?.video?.maxduration;
+      if (duration <= 15) customTargeting[TARGETING_KEYS.VIDEO_DURATION] = 'M';
+      if (duration > 15 && duration <= 30) customTargeting[TARGETING_KEYS.VIDEO_DURATION] = 'XL';
+      if (duration > 30) customTargeting[TARGETING_KEYS.VIDEO_DURATION] = 'XXL';
+    }
+  }
+
+  return customTargeting
+}
+
 const convertToProprietaryData = (validBidRequests, bidderRequest) => {
   const requestData = {
     mock: false,
     debug: true,
+    timestampStart: undefined,
+    timestampEnd: undefined,
     config: {
       publisher: {
         id: undefined,
@@ -39,9 +108,13 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
     targetings: {},
   };
 
+  // Set timestamps
+  requestData.timestampStart = Date.now();
+  requestData.timestampEnd = Date.now() + (!isNaN(bidderRequest.timeout) ? Number(bidderRequest.timeout) : 0);
+
   // Set config
   if (validBidRequests[0]?.params?.publisherId) {
-    requestData.config.publisher.id = validBidRequests[0].params.publisherId
+    requestData.config.publisher.id = validBidRequests[0].params.publisherId;
   }
 
   // Set GDPR
@@ -66,7 +139,9 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
     (validBidRequest.userIdAsEids || []).forEach((eid) => {
       (eid?.uids || []).forEach(uid => {
         if (uid?.ext?.stype === 'ppuid') {
-          extractedPpids.push({source: eid.source, id: uid.id})
+          const isExistingInExtracted = !!extractedPpids.find(id => id.source === eid.source);
+          const isExistingInPpids = !!ppids.find(id => id.source === eid.source);
+          if (!isExistingInExtracted && !isExistingInPpids) extractedPpids.push({source: eid.source, id: uid.id});
         }
       });
     })
@@ -83,14 +158,20 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
   }
 
   // Set slots
-  requestData.slots = validBidRequests.map((bid) => {
+  requestData.slots = validBidRequests.map((validBidRequest) => {
     const slot = {
-      id: bid?.adUnitCode,
-      sizes: bid?.sizes,
-      targetings: bid?.params?.customTargeting,
+      id: validBidRequest?.adUnitCode,
+      sizes: validBidRequest?.sizes,
+      targetings: {
+        ...validBidRequest?.params?.customTargeting,
+        ...convertToCustomSlotTargeting(validBidRequest)
+      }
     };
     return slot;
   });
+
+  // Set targetings
+  requestData.targetings = convertToCustomTargeting(bidderRequest);
 
   utils.logInfo(validBidRequests, bidderRequest);
   utils.logInfo(requestData);
@@ -150,8 +231,6 @@ export const spec = {
     const bids = convertProprietaryResponseToBidResponses(serverResponse, request);
     return bids
   },
-  // Skip for now
-  getUserSyncs: function(syncOptions, serverResponses, gdprConsent, uspConsent) {},
   // Skip for now
   onTimeout: function(timeoutData) {},
   // Skip for now
