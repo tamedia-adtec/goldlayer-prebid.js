@@ -3,16 +3,18 @@ import {BANNER, NATIVE, VIDEO} from '../src/mediaTypes.js';
 import { registerBidder } from '../src/adapters/bidderFactory.js';
 
 /* Constants */
+const LOCAL_MODE = false;
 const BIDDER_CODE = 'goldlayer';
 const GVLID = 580;
 const URL = 'https://goldlayer-api.prod.gbads.net/bid/pbjs';
+const URL_LOCAL = 'http://localhost:3000/bid/pbjs';
 const TARGETING_KEYS = {
-  // request
+  // request level
   GEO_LAT: 'lat',
   GEO_LON: 'long',
   GEO_ZIP: 'zip',
   CONNECTION_TYPE: 'connection',
-  // slot
+  // slot level
   VIDEO_DURATION: 'duration'
 };
 
@@ -23,10 +25,10 @@ const convertToCustomTargeting = (bidderRequest) => {
   // geo - lat/long
   if (bidderRequest?.ortb2?.device?.geo) {
     if (bidderRequest?.ortb2?.device?.geo?.lon) {
-      customTargeting[TARGETING_KEYS.GEO_LON] = bidderRequest.ortb2.device.geo.lon
+      customTargeting[TARGETING_KEYS.GEO_LON] = bidderRequest.ortb2.device.geo.lon;
     }
     if (bidderRequest?.ortb2?.device?.geo?.lat) {
-      customTargeting[TARGETING_KEYS.GEO_LAT] = bidderRequest.ortb2.device.geo.lat
+      customTargeting[TARGETING_KEYS.GEO_LAT] = bidderRequest.ortb2.device.geo.lat;
     }
   }
 
@@ -217,10 +219,11 @@ export const spec = {
     return typeof bid.params.publisherId === 'string';
   },
   buildRequests: function (validBidRequests, bidderRequest) {
+    const url = LOCAL_MODE ? URL_LOCAL : URL;
     const data = convertToProprietaryData(validBidRequests, bidderRequest);
     return [{
       method: 'POST',
-      url: URL,
+      url: url,
       data: data,
       bidderRequest: bidderRequest,
       options: {
