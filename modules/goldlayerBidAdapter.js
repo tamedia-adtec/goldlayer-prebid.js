@@ -60,7 +60,19 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
   requestData.userInfo.ip = undefined;
   requestData.userInfo.ifa = undefined;
   requestData.userInfo.ua = bidderRequest?.ortb2?.device?.ua;
-  requestData.userInfo.ppid = []
+
+  // Set userInfo.ppid
+  requestData.userInfo.ppid = (validBidRequests || []).reduce((ppids, validBidRequest) => {
+    const extractedPpids = [];
+    (validBidRequest.eids || []).forEach((eid) => {
+      (eid?.uids || []).forEach(uid => {
+        if (uid?.ext?.stype === 'ppuid') {
+          extractedPpids.push({source: eid.source, id: uid.id})
+        }
+      });
+    })
+    return [...ppids, ...extractedPpids];
+  }, []);
 
   // Set slots
   requestData.slots = validBidRequests.map((bid) => {
@@ -71,6 +83,9 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
     };
     return slot;
   });
+
+  utils.logInfo(validBidRequests, bidderRequest);
+  utils.logInfo(requestData);
 
   return requestData;
 }
@@ -112,7 +127,6 @@ export const spec = {
   },
   buildRequests: function (validBidRequests, bidderRequest) {
     const data = convertToProprietaryData(validBidRequests, bidderRequest);
-    utils.logInfo('Bidder request', bidderRequest);
     return [{
       method: 'POST',
       url: URL,

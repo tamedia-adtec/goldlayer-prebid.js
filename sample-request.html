@@ -47,13 +47,31 @@
         timeout: 2000,
         userSync: {
             userIds: [{
-                name: 'oneid.live',
-                value: '0275ae5c-6b8c-4848-ba3e-d829938b92d7' 
-            }, {
-                name: 'goldbach.com',
-                value: '9430a3dc8b7b69cb41119b25702301e6'
+             name: "pubProvidedId",
+             params: {
+                    eids: [{
+                        source: "oneid.live",
+                        uids: [{
+                            id: "111222333444555666777888999",
+                            atype: 1,
+                            ext: {
+                                stype: "ppuid"
+                            }
+
+                        }]
+                    }, {
+                        source: "goldbach.com",
+                        uids: [{
+                            id: "111222333444555222777888999",
+                            atype: 1,
+                            ext: {
+                                stype: "ppuid"
+                            }
+                        }]
+                    }]
+                },
             }],
-            auctionDelay: 50 // Delay to ensure user ID is available before the auction
+            auctionDelay: 50
         }
     });
 
