@@ -51,20 +51,19 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
   }
 
   // Set contextInfo
-  requestData.contextInfo.contentUrl = bidderRequest.refererInfo.canonicalUrl || bidderRequest.refererInfo.topmostLocation;
+  requestData.contextInfo.contentUrl = bidderRequest.refererInfo.canonicalUrl || bidderRequest.refererInfo.topmostLocation || bidderRequest.refererInfo.page;
 
   // Set appInfo
-  requestData.appInfo.id = bidderRequest?.ortb2?.site?.domain;
+  requestData.appInfo.id = bidderRequest?.ortb2?.site?.domain || bidderRequest.refererInfo.page;
 
   // Set userInfo
-  requestData.userInfo.ip = undefined;
-  requestData.userInfo.ifa = undefined;
-  requestData.userInfo.ua = bidderRequest?.ortb2?.device?.ua;
+  requestData.userInfo.ip = bidderRequest?.ortb2?.device?.ip || navigator.ip;
+  requestData.userInfo.ua = bidderRequest?.ortb2?.device?.ua || navigator.userAgent;
 
   // Set userInfo.ppid
   requestData.userInfo.ppid = (validBidRequests || []).reduce((ppids, validBidRequest) => {
     const extractedPpids = [];
-    (validBidRequest.eids || []).forEach((eid) => {
+    (validBidRequest.userIdAsEids || []).forEach((eid) => {
       (eid?.uids || []).forEach(uid => {
         if (uid?.ext?.stype === 'ppuid') {
           extractedPpids.push({source: eid.source, id: uid.id})
@@ -73,6 +72,15 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
     })
     return [...ppids, ...extractedPpids];
   }, []);
+
+  // Set userInfo.ifa
+  if (bidderRequest.ortb2?.device?.ifa) {
+    requestData.userInfo.ifa = bidderRequest.ortb2.device.ifa;
+  } else {
+    requestData.userInfo.ifa = validBidRequests.find(validBidRequest => {
+      return !!validBidRequest.ortb2?.device?.ifa;
+    });
+  }
 
   // Set slots
   requestData.slots = validBidRequests.map((bid) => {
