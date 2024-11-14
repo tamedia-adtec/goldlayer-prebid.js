@@ -161,7 +161,10 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
   requestData.slots = validBidRequests.map((validBidRequest) => {
     const slot = {
       id: validBidRequest?.adUnitCode,
-      sizes: validBidRequest?.sizes,
+      sizes: [
+        ...validBidRequest?.sizes,
+        ...(validBidRequest.mediaTypes?.[VIDEO] ? [[640, 480]] : [])
+      ],
       targetings: {
         ...validBidRequest?.params?.customTargeting,
         ...convertToCustomSlotTargeting(validBidRequest)
