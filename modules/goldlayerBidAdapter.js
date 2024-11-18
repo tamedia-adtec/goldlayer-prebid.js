@@ -177,15 +177,14 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
   // Set targetings
   requestData.targetings = convertToCustomTargeting(bidderRequest);
 
-  utils.logInfo(validBidRequests, bidderRequest);
-  utils.logInfo(requestData);
-
   return requestData;
 }
 
 const convertProprietaryResponseToBidResponses = (serverResponse, bidRequest) => {
   const bidRequests = bidRequest?.bidderRequest?.bids || [];
   const creativeGroups = serverResponse?.body?.creatives || {};
+
+  utils.logInfo(bidRequest);
 
   return bidRequests.reduce((bidResponses, bidRequest) => {
     const matchingCreativeGroup = creativeGroups[bidRequest.adUnitCode] || [];

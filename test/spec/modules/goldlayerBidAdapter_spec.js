@@ -10,6 +10,284 @@ import { VIDEO } from 'src/mediaTypes.js';
 const BIDDER_NAME = 'goldlayer'
 const ENDPOINT = 'https://goldlayer-api.prod.gbads.net/bid/pbjs';
 
+/* Eids */
+let eids = [
+  {
+    source: 'goldbach.com',
+    uids: [
+      {
+        id: '0d862e87-14e9-47a4-9e9b-886b7d7a9d1b',
+        atype: 1,
+        ext: { stype: 'ppuid' }
+      }
+    ]
+  },
+  {
+    source: 'niceid.live',
+    uids: [
+      {
+        id: '0d862e87-14e9-47a4-9e9b-886b7d7a9d1a',
+        atype: 1,
+        ext: { stype: 'ppuid' }
+      }
+    ]
+  },
+  {
+    source: 'otherid.live',
+    uids: [
+      {
+        id: '0d862e87-14e9-47a4-9e9b-886b7d7a9d1a',
+        atype: 1,
+        ext: { stype: 'other-id' }
+      }
+    ]
+  }
+];
+
+/* Ortb2 bid information */
+let ortb2 = {
+  device: {
+    ip: '133.713.371.337',
+    connectiontype: 6,
+    w: 1512,
+    h: 982,
+    ifa: '23575619-ef35-4908-b468-ffc4000cdf07',
+    ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+    geo: {lat: 47.318054, lon: 8.582883, zip: '8700'}
+  },
+  site: {
+    domain: 'publisher-page.ch',
+    page: 'https://publisher-page.ch/home',
+    publisher: { domain: 'publisher-page.ch' },
+    ref: 'https://publisher-page.ch/home'
+  },
+  user: {
+    ext: {
+      eids: eids
+    }
+  }
+};
+
+/* Minimal bidderRequest */
+let validBidderRequest = {
+  auctionId: '7570fb24-810d-4c26-9f9c-acd0b6977f60',
+  start: 1731680672810,
+  auctionStart: 1731680672808,
+  ortb2: ortb2,
+  bidderCode: BIDDER_NAME,
+  gdprConsent: {
+    gdprApplies: true,
+    consentString: 'trust-me-i-consent'
+  },
+  timeout: 300
+};
+
+/* Minimal validBidRequests */
+let validBidRequests = [
+  {
+    bidder: BIDDER_NAME,
+    adUnitCode: '/46753895/publisher.ch/inside-full-content-pos1/pbjs-test',
+    adUnitId: 'c3400db6-c4c5-465e-bf67-1545751944b7',
+    auctionId: '7570fb24-810d-4c26-9f9c-acd0b6977f60',
+    bidId: '3d52a1909b972a',
+    bidderRequestId: '2b63a1826ab946',
+    userIdAsEids: eids,
+    ortb2: ortb2,
+    mediaTypes: {
+      banner: {
+        sizes: [[300, 50], [300, 250], [300, 600], [320, 50], [320, 480], [320, 64], [320, 160], [320, 416], [336, 280]]
+      }
+    },
+    sizes: [[300, 50], [300, 250], [300, 600], [320, 50], [320, 480], [320, 64], [320, 160], [320, 416], [336, 280]],
+    params: {
+      publisherId: 'de-publisher.ch-ios',
+      customTargeting: {
+        connection: 'wifi',
+        language: 'de'
+      }
+    }
+  },
+  {
+    bidder: BIDDER_NAME,
+    adUnitCode: '/46753895/publisher.ch/inside-full-content-pos1/pbjs-test/video',
+    adUnitId: 'c3400db6-c4c5-465e-bf67-1545751944b8',
+    auctionId: '7570fb24-810d-4c26-9f9c-acd0b6977f60',
+    bidId: '3d52a1909b972b',
+    bidderRequestId: '2b63a1826ab946',
+    userIdAsEids: eids,
+    ortb2: ortb2,
+    mediaTypes: {
+      video: {
+        sizes: [[640, 480]]
+      }
+    },
+    sizes: [[640, 480]],
+    params: {
+      publisherId: 'de-publisher.ch-ios',
+      video: {
+        maxduration: 30,
+      },
+      customTargeting: {
+        connection: 'wifi',
+        language: 'de'
+      }
+    }
+  }
+];
+
+/* Creative request send to server */
+let validCreativeRequest = {
+  mock: false,
+  debug: false,
+  timestampStart: 1731680672811,
+  timestampEnd: 1731680675811,
+  config: {
+    publisher: {
+      id: 'de-20minuten.ch',
+    },
+  },
+  gdpr: {},
+  contextInfo: {
+    contentUrl: 'http://127.0.0.1:5500/sample-request.html',
+  },
+  appInfo: {
+    id: '127.0.0.1:5500',
+  },
+  userInfo: {
+    ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+    ifa: '23575619-ef35-4908-b468-ffc4000cdf07',
+    ppid: [
+      {
+        source: 'oneid.live',
+        id: '0d862e87-14e9-47a4-9e9b-886b7d7a9d1b',
+      },
+      {
+        source: 'goldbach.com',
+        id: 'aa07ead5044f47bb28894ffa0346ed2c',
+      },
+    ],
+  },
+  slots: [
+    {
+      id: '/46753895/publisher.ch/inside-full-content-pos1/pbjs-test',
+      sizes: [
+        [300, 50],
+        [300, 250],
+        [300, 600],
+        [320, 50],
+        [320, 480],
+        [320, 64],
+        [320, 160],
+        [320, 416],
+        [336, 280],
+      ],
+      targetings: {
+        gpsenabled: 'false',
+        fr: 'false',
+        pagetype: 'story',
+        darkmode: 'false',
+        userloggedin: 'false',
+        iosbuild: '24110',
+        language: 'de',
+        storyId: '103211763',
+        connection: 'wifi',
+      },
+    },
+    {
+      id: '/46753895/publisher.ch/inside-full-content-pos1/pbjs-test/video',
+      sizes: [[640, 480]],
+      targetings: {
+        gpsenabled: 'false',
+        fr: 'false',
+        pagetype: 'story',
+        darkmode: 'false',
+        userloggedin: 'false',
+        iosbuild: '24110',
+        language: 'de',
+        storyId: '103211763',
+        connection: 'wifi',
+        duration: 'XL',
+      },
+    },
+  ],
+  targetings: {
+    long: 8.582883,
+    lat: 47.318054,
+    connection: '4G',
+    zip: '8700',
+  },
+};
+
+/* Creative response received from server */
+let validCreativeResponse = {
+  creatives: {
+    '/46753895/publisher.ch/inside-full-content-pos1/pbjs-test': [
+      {
+        cpm: 32.2,
+        currency: 'USD',
+        width: 1,
+        height: 1,
+        creativeId: '1',
+        ttl: 3600,
+        mediaType: 'native',
+        netRevenue: true,
+        ad: 'native-ad',
+        meta: {
+          advertiserDomains: ['example.com'],
+          mediaType: 'native'
+        }
+      },
+      {
+        cpm: 21.9,
+        currency: 'USD',
+        width: 300,
+        height: 50,
+        creativeId: '2',
+        ttl: 3600,
+        mediaType: 'banner',
+        netRevenue: true,
+        ad: 'banner-ad',
+        meta: {
+          advertiserDomains: ['example.com'],
+          mediaType: 'banner'
+        }
+      }
+    ],
+    '/46753895/publisher.ch/inside-full-content-pos1/pbjs-test/video': [
+      {
+        cpm: 44.2,
+        currency: 'USD',
+        width: 1,
+        height: 1,
+        creativeId: '3',
+        ttl: 3600,
+        mediaType: 'video',
+        netRevenue: true,
+        ad: 'video-ad',
+        meta: {
+          advertiserDomains: ['example.com'],
+          mediaType: 'video'
+        }
+      }
+    ],
+  }
+};
+
+/* composed request */
+let validRequest = {
+  url: ENDPOINT,
+  method: 'POST',
+  data: validCreativeRequest,
+  options: {
+    contentType: 'application/json',
+    withCredentials: false
+  },
+  bidderRequest: {
+    ...validBidderRequest,
+    bids: validBidRequests
+  }
+}
+
 describe('GoldlayerBidAdapter', function () {
   const adapter = newBidder(spec);
 
@@ -44,131 +322,6 @@ describe('GoldlayerBidAdapter', function () {
   });
 
   describe('buildRequests', function () {
-    /* Eids */
-    let eids = [
-      {
-        source: 'goldbach.com',
-        uids: [
-          {
-            id: '0d862e87-14e9-47a4-9e9b-886b7d7a9d1b',
-            atype: 1,
-            ext: { stype: 'ppuid' }
-          }
-        ]
-      },
-      {
-        source: 'niceid.live',
-        uids: [
-          {
-            id: '0d862e87-14e9-47a4-9e9b-886b7d7a9d1a',
-            atype: 1,
-            ext: { stype: 'ppuid' }
-          }
-        ]
-      },
-      {
-        source: 'otherid.live',
-        uids: [
-          {
-            id: '0d862e87-14e9-47a4-9e9b-886b7d7a9d1a',
-            atype: 1,
-            ext: { stype: 'other-id' }
-          }
-        ]
-      }
-    ];
-
-    /* Ortb2 bid information */
-    let ortb2 = {
-      device: {
-        ip: '133.713.371.337',
-        connectiontype: 6,
-        w: 1512,
-        h: 982,
-        ifa: '23575619-ef35-4908-b468-ffc4000cdf07',
-        ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-        geo: {lat: 47.318054, lon: 8.582883, zip: '8700'}
-      },
-      site: {
-        domain: 'publisher-page.ch',
-        page: 'https://publisher-page.ch/home',
-        publisher: { domain: 'publisher-page.ch' },
-        ref: 'https://publisher-page.ch/home'
-      },
-      user: {
-        ext: {
-          eids: eids
-        }
-      }
-    };
-
-    /* Minimal bidderRequest */
-    let validBidderRequest = {
-      auctionId: '7570fb24-810d-4c26-9f9c-acd0b6977f60',
-      start: 1731680672810,
-      auctionStart: 1731680672808,
-      ortb2: ortb2,
-      bidderCode: BIDDER_NAME,
-      gdprConsent: {
-        gdprApplies: true,
-        consentString: 'trust-me-i-consent'
-      },
-      timeout: 300
-    };
-
-    /* Minimal validBidRequests */
-    let validBidRequests = [
-      {
-        bidder: BIDDER_NAME,
-        adUnitCode: '/46753895/publisher.ch/inside-full-content-pos1/pbjs-test',
-        adUnitId: 'c3400db6-c4c5-465e-bf67-1545751944b7',
-        auctionId: '7570fb24-810d-4c26-9f9c-acd0b6977f60',
-        bidId: '3d52a1909b972a',
-        bidderRequestId: '2b63a1826ab946',
-        userIdAsEids: eids,
-        ortb2: ortb2,
-        mediaTypes: {
-          banner: {
-            sizes: [[300, 50], [300, 250], [300, 600], [320, 50], [320, 480], [320, 64], [320, 160], [320, 416], [336, 280]]
-          }
-        },
-        sizes: [[300, 50], [300, 250], [300, 600], [320, 50], [320, 480], [320, 64], [320, 160], [320, 416], [336, 280]],
-        params: {
-          publisherId: 'de-publisher.ch-ios',
-          customTargeting: {
-            connection: 'wifi',
-            language: 'de'
-          }
-        }
-      },
-      {
-        bidder: BIDDER_NAME,
-        adUnitCode: '/46753895/publisher.ch/inside-full-content-pos1/pbjs-test/video',
-        adUnitId: 'c3400db6-c4c5-465e-bf67-1545751944b8',
-        auctionId: '7570fb24-810d-4c26-9f9c-acd0b6977f60',
-        bidId: '3d52a1909b972b',
-        bidderRequestId: '2b63a1826ab947',
-        userIdAsEids: eids,
-        ortb2: ortb2,
-        mediaTypes: {
-          video: {
-            sizes: [[640, 480]]
-          }
-        },
-        sizes: [[640, 480]],
-        params: {
-          publisherId: 'de-publisher.ch-ios',
-          video: {
-            maxduration: 30,
-          },
-          customTargeting: {
-            connection: 'wifi',
-            language: 'de'
-          }
-        }
-      }
-    ];
-
     let getAdUnitsStub;
 
     beforeEach(function() {
@@ -326,6 +479,69 @@ describe('GoldlayerBidAdapter', function () {
       expect(payload.targetings['zip']).to.exist;
       expect(payload.targetings['connection']).to.exist;
       expect(payload.targetings['connection']).to.equal('4G');
+    });
+
+    it('should create a request with minimal information', function () {
+      let bidderRequest = Object.assign({}, validBidderRequest);
+      let bidRequests = validBidRequests.map(request => Object.assign({}, request));
+
+      // Removing usable bidderRequest values
+      bidderRequest.gdprConsent = undefined;
+      bidderRequest.ortb2.device.connectiontype = undefined;
+      bidderRequest.ortb2.device.geo = undefined;
+      bidderRequest.ortb2.device.ip = undefined;
+      bidderRequest.ortb2.device.ifa = undefined;
+      bidderRequest.ortb2.device.ua = undefined;
+
+      // Removing usable bidRequests values
+      bidRequests = bidRequests.map(request => {
+        request.ortb2.device.connectiontype = undefined;
+        request.ortb2.device.geo = undefined;
+        request.ortb2.device.ip = undefined;
+        request.ortb2.device.ifa = undefined;
+        request.ortb2.device.ua = undefined;
+        request.userIdAsEids = undefined;
+        request.params = {
+          publisherId: 'de-publisher.ch-ios'
+        };
+        return request;
+      });
+
+      const requests = spec.buildRequests(bidRequests, bidderRequest);
+      const payload = requests[0].data;
+
+      // bidderRequest mappings
+      expect(payload.gdpr).to.exist;
+      expect(payload.gdpr.consent).to.not.exist;
+      expect(payload.gdpr.consentString).to.not.exist;
+      expect(payload.userInfo).to.exist;
+      expect(payload.userInfo.ua).to.exist;
+      expect(payload.userInfo.ip).to.not.exist;
+      expect(payload.userInfo.ifa).to.not.exist;
+      expect(payload.userInfo.ppid.length).to.equal(0);
+      expect(payload.targetings).to.exist;
+      expect(payload.targetings['connection']).to.not.exist;
+      expect(payload.targetings['lat']).to.not.exist;
+      expect(payload.targetings['long']).to.not.exist;
+      expect(payload.targetings['zip']).to.not.exist;
+
+      // bidRequests mapping
+      expect(payload.slots).to.exist;
+      expect(payload.slots.length).to.equal(2);
+      expect(payload.slots[0].targetings).to.exist
+      expect(payload.slots[1].targetings).to.exist
+    });
+  });
+
+  describe('interpretResponse', function () {
+    it('should map response to valid bids', function () {
+      let request = deepClone(validRequest);
+      let bidResponse = deepClone({body: validCreativeResponse});
+
+      const response = spec.interpretResponse(bidResponse, request);
+
+      expect(response).to.exist;
+      expect(response.length).to.equal(3);
     });
   });
 });
