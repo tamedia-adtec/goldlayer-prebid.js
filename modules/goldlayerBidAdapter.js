@@ -3,7 +3,7 @@ import {BANNER, NATIVE, VIDEO} from '../src/mediaTypes.js';
 import { registerBidder } from '../src/adapters/bidderFactory.js';
 
 /* Constants */
-const LOCAL_MODE = false;
+const IS_LOCAL_MODE = false;
 const BIDDER_CODE = 'goldlayer';
 const GVLID = 580;
 const URL = 'https://goldlayer-api.prod.gbads.net/bid/pbjs';
@@ -125,10 +125,10 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
   }
 
   // Set contextInfo
-  requestData.contextInfo.contentUrl = bidderRequest.refererInfo.canonicalUrl || bidderRequest.refererInfo.topmostLocation || bidderRequest.refererInfo.page;
+  requestData.contextInfo.contentUrl = bidderRequest.refererInfo?.canonicalUrl || bidderRequest.refererInfo?.topmostLocation || bidderRequest?.ortb2?.site?.page;
 
   // Set appInfo
-  requestData.appInfo.id = bidderRequest?.ortb2?.site?.domain || bidderRequest.refererInfo.page;
+  requestData.appInfo.id = bidderRequest?.ortb2?.site?.domain || bidderRequest.refererInfo?.page;
 
   // Set userInfo
   requestData.userInfo.ip = bidderRequest?.ortb2?.device?.ip || navigator.ip;
@@ -163,7 +163,7 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
     const slot = {
       id: validBidRequest?.adUnitCode,
       sizes: [
-        ...validBidRequest?.sizes,
+        ...validBidRequest?.sizes || [],
         ...(validBidRequest.mediaTypes?.[VIDEO] ? [[640, 480]] : [])
       ],
       targetings: {
@@ -216,10 +216,10 @@ export const spec = {
   gvlid: GVLID,
   supportedMediaTypes: [BANNER, VIDEO, NATIVE],
   isBidRequestValid: function (bid) {
-    return typeof bid.params.publisherId === 'string';
+    return typeof bid.params.publisherId === 'string' && Array.isArray(bid.sizes);
   },
   buildRequests: function (validBidRequests, bidderRequest) {
-    const url = LOCAL_MODE ? URL_LOCAL : URL;
+    const url = IS_LOCAL_MODE ? URL_LOCAL : URL;
     const data = convertToProprietaryData(validBidRequests, bidderRequest);
     return [{
       method: 'POST',
