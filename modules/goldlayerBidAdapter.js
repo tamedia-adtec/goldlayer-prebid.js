@@ -50,6 +50,10 @@ const convertToCustomTargeting = (bidderRequest) => {
       case 6:
         customTargeting[TARGETING_KEYS.CONNECTION_TYPE] = '4G';
         break;
+      case 0:
+      case 3:
+      default:
+        break;
     }
   }
 

@@ -102,7 +102,6 @@ let validBidRequests = [
     params: {
       publisherId: 'de-publisher.ch-ios',
       customTargeting: {
-        connection: 'wifi',
         language: 'de'
       }
     }
@@ -128,7 +127,6 @@ let validBidRequests = [
         maxduration: 30,
       },
       customTargeting: {
-        connection: 'wifi',
         language: 'de'
       }
     }
@@ -463,9 +461,46 @@ describe('GoldlayerBidAdapter', function () {
       expect(payload.userInfo.ppid.length).to.equal(2);
     });
 
-    it('should set mapped targetings on request', function () {
-      let bidRequests = validBidRequests.map(request => Object.assign({}, request));
-      let bidderRequest = Object.assign({}, validBidderRequest);
+    it('should set mapped general targetings on request', function () {
+      let bidRequests = deepClone(validBidRequests);
+      let bidderRequest = deepClone(validBidderRequest);
+
+      const requests = spec.buildRequests(bidRequests, bidderRequest);
+      const payload = requests[0].data;
+
+      expect(payload.slots[0].targetings['duration']).to.not.exist;
+      expect(payload.slots[1].targetings['duration']).to.exist;
+      expect(payload.targetings['duration']).to.not.exist;
+      expect(payload.targetings['lat']).to.exist;
+      expect(payload.targetings['long']).to.exist;
+      expect(payload.targetings['zip']).to.exist;
+      expect(payload.targetings['connection']).to.exist;
+    });
+
+    it('should set mapped video duration targetings on request', function () {
+      let bidRequests = deepClone(validBidRequests);
+      let videoRequest = deepClone(validBidRequests[1]);
+      let bidderRequest = deepClone(validBidderRequest);
+
+      bidRequests.push({
+        ...videoRequest,
+        params: {
+          ...videoRequest.params,
+          video: {
+            maxduration: 10
+          }
+        }
+      })
+
+      bidRequests.push({
+        ...videoRequest,
+        params: {
+          ...videoRequest.params,
+          video: {
+            maxduration: 35
+          }
+        }
+      })
 
       const requests = spec.buildRequests(bidRequests, bidderRequest);
       const payload = requests[0].data;
@@ -473,12 +508,39 @@ describe('GoldlayerBidAdapter', function () {
       expect(payload.slots[0].targetings['duration']).to.not.exist;
       expect(payload.slots[1].targetings['duration']).to.exist;
       expect(payload.slots[1].targetings['duration']).to.equal('XL');
-      expect(payload.targetings['duration']).to.not.exist;
-      expect(payload.targetings['lat']).to.exist;
-      expect(payload.targetings['long']).to.exist;
-      expect(payload.targetings['zip']).to.exist;
-      expect(payload.targetings['connection']).to.exist;
-      expect(payload.targetings['connection']).to.equal('4G');
+      expect(payload.slots[2].targetings['duration']).to.equal('M');
+      expect(payload.slots[3].targetings['duration']).to.equal('XXL');
+    });
+
+    it('should set mapped connection targetings on request', function () {
+      let bidRequests = deepClone(validBidRequests);
+      let bidderRequest = deepClone(validBidderRequest);
+
+      const bidderRequestEthernet = deepClone(bidderRequest);
+      bidderRequestEthernet.ortb2.device.connectiontype = 1;
+      const payloadEthernet = spec.buildRequests(bidRequests, bidderRequestEthernet)[0].data;
+
+      const bidderRequestWifi = deepClone(bidderRequest);
+      bidderRequestWifi.ortb2.device.connectiontype = 2;
+      const payloadWifi = spec.buildRequests(bidRequests, bidderRequestWifi)[0].data;
+
+      const bidderRequest2G = deepClone(bidderRequest);
+      bidderRequest2G.ortb2.device.connectiontype = 4;
+      const payload2G = spec.buildRequests(bidRequests, bidderRequest2G)[0].data;
+
+      const bidderRequest3G = deepClone(bidderRequest);
+      bidderRequest3G.ortb2.device.connectiontype = 5;
+      const payload3G = spec.buildRequests(bidRequests, bidderRequest3G)[0].data;
+
+      const bidderRequest4G = deepClone(bidderRequest);
+      bidderRequest4G.ortb2.device.connectiontype = 6;
+      const payload4G = spec.buildRequests(bidRequests, bidderRequest4G)[0].data;
+
+      expect(payloadEthernet.targetings['connection']).to.equal('ethernet');
+      expect(payloadWifi.targetings['connection']).to.equal('wifi');
+      expect(payload2G.targetings['connection']).to.equal('2G');
+      expect(payload3G.targetings['connection']).to.equal('3G');
+      expect(payload4G.targetings['connection']).to.equal('4G');
     });
 
     it('should create a request with minimal information', function () {
@@ -534,7 +596,7 @@ describe('GoldlayerBidAdapter', function () {
   });
 
   describe('interpretResponse', function () {
-    it('should map response to valid bids', function () {
+    it('should map response to valid bids (amount)', function () {
       let request = deepClone(validRequest);
       let bidResponse = deepClone({body: validCreativeResponse});
 
@@ -542,6 +604,8 @@ describe('GoldlayerBidAdapter', function () {
 
       expect(response).to.exist;
       expect(response.length).to.equal(3);
+      expect(response.filter(bid => bid.requestId === validBidRequests[0].bidId).length).to.equal(2)
+      expect(response.filter(bid => bid.requestId === validBidRequests[1].bidId).length).to.equal(1)
     });
   });
 });
