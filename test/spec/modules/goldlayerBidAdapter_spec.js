@@ -536,11 +536,16 @@ describe('GoldlayerBidAdapter', function () {
       bidderRequest4G.ortb2.device.connectiontype = 6;
       const payload4G = spec.buildRequests(bidRequests, bidderRequest4G)[0].data;
 
+      const bidderRequestNoConnection = deepClone(bidderRequest);
+      bidderRequestNoConnection.ortb2.device.connectiontype = undefined;
+      const payloadNoConnection = spec.buildRequests(bidRequests, bidderRequestNoConnection)[0].data;
+
       expect(payloadEthernet.targetings['connection']).to.equal('ethernet');
       expect(payloadWifi.targetings['connection']).to.equal('wifi');
       expect(payload2G.targetings['connection']).to.equal('2G');
       expect(payload3G.targetings['connection']).to.equal('3G');
       expect(payload4G.targetings['connection']).to.equal('4G');
+      expect(payloadNoConnection.targetings['connection']).to.equal(undefined);
     });
 
     it('should create a request with minimal information', function () {
