@@ -333,8 +333,8 @@ describe('GoldlayerBidAdapter', function () {
     });
 
     it('should use defined endpoint', function () {
-      let bidRequests = validBidRequests.map(request => Object.assign({}, request));
-      let bidderRequest = Object.assign({}, validBidderRequest);
+      let bidRequests = deepClone(validBidRequests);
+      let bidderRequest = deepClone(validBidderRequest);
 
       const requests = spec.buildRequests(bidRequests, bidderRequest);
       expect(requests.length).to.equal(1);
@@ -342,8 +342,8 @@ describe('GoldlayerBidAdapter', function () {
     })
 
     it('should parse all bids to valid slots', function () {
-      let bidRequests = validBidRequests.map(request => Object.assign({}, request));
-      let bidderRequest = Object.assign({}, validBidderRequest);
+      let bidRequests = deepClone(validBidRequests);
+      let bidderRequest = deepClone(validBidderRequest);
 
       const requests = spec.buildRequests(bidRequests, bidderRequest);
       const payload = requests[0].data;
@@ -360,7 +360,7 @@ describe('GoldlayerBidAdapter', function () {
 
     it('should parse all video bids to valid video slots (use video sizes)', function () {
       let bidRequests = validBidRequests.map(request => Object.assign({}, []));
-      let bidderRequest = Object.assign({}, validBidderRequest);
+      let bidderRequest = deepClone(validBidderRequest);
 
       const requests = spec.buildRequests([{
         ...bidRequests[1],
@@ -380,8 +380,8 @@ describe('GoldlayerBidAdapter', function () {
     });
 
     it('should set timestamps on request', function () {
-      let bidRequests = validBidRequests.map(request => Object.assign({}, request));
-      let bidderRequest = Object.assign({}, validBidderRequest);
+      let bidRequests = deepClone(validBidRequests);
+      let bidderRequest = deepClone(validBidderRequest);
 
       const requests = spec.buildRequests(bidRequests, bidderRequest);
       const payload = requests[0].data;
@@ -393,8 +393,8 @@ describe('GoldlayerBidAdapter', function () {
     });
 
     it('should set config on request', function () {
-      let bidRequests = validBidRequests.map(request => Object.assign({}, request));
-      let bidderRequest = Object.assign({}, validBidderRequest);
+      let bidRequests = deepClone(validBidRequests);
+      let bidderRequest = deepClone(validBidderRequest);
 
       const requests = spec.buildRequests(bidRequests, bidderRequest);
       const payload = requests[0].data;
@@ -403,8 +403,8 @@ describe('GoldlayerBidAdapter', function () {
     });
 
     it('should set config on request', function () {
-      let bidRequests = validBidRequests.map(request => Object.assign({}, request));
-      let bidderRequest = Object.assign({}, validBidderRequest);
+      let bidRequests = deepClone(validBidRequests);
+      let bidderRequest = deepClone(validBidderRequest);
 
       const requests = spec.buildRequests(bidRequests, bidderRequest);
       const payload = requests[0].data;
@@ -413,8 +413,8 @@ describe('GoldlayerBidAdapter', function () {
     });
 
     it('should set gdpr on request', function () {
-      let bidRequests = validBidRequests.map(request => Object.assign({}, request));
-      let bidderRequest = Object.assign({}, validBidderRequest);
+      let bidRequests = deepClone(validBidRequests);
+      let bidderRequest = deepClone(validBidderRequest);
 
       const requests = spec.buildRequests(bidRequests, bidderRequest);
       const payload = requests[0].data;
@@ -425,8 +425,8 @@ describe('GoldlayerBidAdapter', function () {
     });
 
     it('should set contextInfo on request', function () {
-      let bidRequests = validBidRequests.map(request => Object.assign({}, request));
-      let bidderRequest = Object.assign({}, validBidderRequest);
+      let bidRequests = deepClone(validBidRequests);
+      let bidderRequest = deepClone(validBidderRequest);
 
       const requests = spec.buildRequests(bidRequests, bidderRequest);
       const payload = requests[0].data;
@@ -436,8 +436,8 @@ describe('GoldlayerBidAdapter', function () {
     });
 
     it('should set appInfo on request', function () {
-      let bidRequests = validBidRequests.map(request => Object.assign({}, request));
-      let bidderRequest = Object.assign({}, validBidderRequest);
+      let bidRequests = deepClone(validBidRequests);
+      let bidderRequest = deepClone(validBidderRequest);
 
       const requests = spec.buildRequests(bidRequests, bidderRequest);
       const payload = requests[0].data;
@@ -447,8 +447,8 @@ describe('GoldlayerBidAdapter', function () {
     });
 
     it('should set userInfo on request', function () {
-      let bidRequests = validBidRequests.map(request => Object.assign({}, request));
-      let bidderRequest = Object.assign({}, validBidderRequest);
+      let bidRequests = deepClone(validBidRequests);
+      let bidderRequest = deepClone(validBidderRequest);
 
       const requests = spec.buildRequests(bidRequests, bidderRequest);
       const payload = requests[0].data;
