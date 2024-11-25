@@ -1,128 +1,179 @@
 <html>
 <head>
     <title>Sample Request with PPID</title>
+    <div id="/46753895/de-20minuten.ch/inside-full-content-pos1/ostschweiz" style="width:300px;height:300px;background-color:aquamarine;margin:5px;"></div>
+    <div id="/46753895/de-20minuten.ch/video/bern" style="width:300px;height:300px;background-color:bisque;margin:5px;"></div>
+    <div id="/46753895/de-20minuten.ch/inside-full-content-pos/reporterin" style="width:300px;height:300px;background-color:thistle;margin:5px;"></div>
+    <div id="video-container" style="width:300px;height:300px;background-color:darkkhaki;margin:5px;"></div>
 </head>
 <body>
     <script src="./build/dev/prebid.js"></script>
     <script>
-    // Define your ad unit configuration
-    var adUnits = [{
-        code: '/46753895/de-20minuten.ch/inside-full-content-pos1/ostschweiz', 
-        mediaTypes: {
-            banner: {
-                sizes: [[300,50],[300,250],[300,600],[320,50],[320,480],[320,64],[320,160],[320,416],[336,280]]
-            }
-        },
-        bids: [{
-            bidder: 'goldlayer', 
-            params: {
-                publisherId: 'de-20minuten.ch',
-                customTargeting: {
-                    gpsenabled: "false",
-                    fr: "false",
-                    pagetype: "story",
-                    darkmode: "false",
-                    userloggedin: "false",
-                    iosbuild: "24110",
-                    language: "de",
-                    storyId: "103211763",
-                    connection: "wifi"
-                }
-            }
-        }]
-    }, {
-        code: '/46753895/de-20minuten.ch/video/bern', 
-        mediaTypes: {
-            video: {
-                sizes: [[640,480]]
-            }
-        },
-        bids: [{
-            bidder: 'goldlayer', 
-            params: {
-                publisherId: 'de-20minuten.ch',
-                customTargeting: {
-                    gpsenabled: "false",
-                    fr: "false",
-                    pagetype: "story",
-                    darkmode: "false",
-                    userloggedin: "false",
-                    iosbuild: "24110",
-                    language: "de",
-                    storyId: "103211763",
-                    connection: "wifi"
+        // Define your ad unit configuration
+        var adUnits = [
+            {
+                code: '/46753895/de-20minuten.ch/inside-full-content-pos1/ostschweiz',
+                mediaTypes: {
+                    banner: {
+                        sizes: [[300, 50], [300, 250], [300, 600], [320, 50], [320, 480], [320, 64], [320, 160], [320, 416], [336, 280]]
+                    }
                 },
-                video: {
-                    maxduration: 30 
-                }
-            }
-        }]
-    }];
-
-    // Set Prebid configurations with PPID (Publisher Provided Identifier) support
-    pbjs.setConfig({
-        debug: true,
-        cache: {
-            url: 'https://prebid.adnxs.com/pbc/v1/cache'
-        },
-        s2sConfig: {
-            accountId: '1234',
-            bidders: ['appnexus'],
-            timeout: 1000,
-            endpoint: 'https://prebid.adnxs.com/pbs/v1/openrtb2/auction',
-        },
-        ortb2: {
-            device: {
-                ifa: "23575619-ef35-4908-b468-ffc4000cdf07",
-                geo: {
-                    lat: 47.318054,
-                    lon: 8.582883,
-                    zip: "8700"
-                },
-                connectiontype: 6
-            }
-        },
-        timeout: 2000,
-        userSync: {
-            userIds: [{
-             name: "pubProvidedId",
-             params: {
-                    eids: [{
-                        source: "oneid.live",
-                        uids: [{
-                            id: "0d862e87-14e9-47a4-9e9b-886b7d7a9d1b",
-                            atype: 1,
-                            ext: {
-                                stype: "ppuid"
+                bids: [
+                    {
+                        bidder: 'goldbach',
+                        params: {
+                            publisherId: 'de-20minuten.ch',
+                            customTargeting: {
+                                gpsenabled: "false",
+                                fr: "false",
+                                pagetype: "story",
+                                darkmode: "false",
+                                userloggedin: "false",
+                                iosbuild: "24110",
+                                language: "de",
+                                storyId: "103211763",
+                                connection: "wifi"
                             }
-
-                        }]
-                    }, {
-                        source: "goldbach.com",
-                        uids: [{
-                            id: "aa07ead5044f47bb28894ffa0346ed2c",
-                            atype: 1,
-                            ext: {
-                                stype: "ppuid"
-                            }
-                        }]
-                    }]
+                        }
+                    }
+                ]
+            },
+            {
+                code: '/46753895/de-20minuten.ch/video/bern',
+                mediaTypes: {
+                    video: {
+                        sizes: [[640, 480]]
+                    }
                 },
-            }],
-            auctionDelay: 50
-        }
-    });
+                bids: [
+                    {
+                        bidder: 'goldbach',
+                        params: {
+                            publisherId: 'de-20minuten.ch',
+                            customTargeting: {
+                                gpsenabled: "false",
+                                fr: "false",
+                                pagetype: "story",
+                                darkmode: "false",
+                                userloggedin: "false",
+                                iosbuild: "24110",
+                                language: "de",
+                                storyId: "103211763",
+                                connection: "wifi"
+                            },
+                            video: {
+                                maxduration: 30
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                code: '/46753895/de-20minuten.ch/inside-full-content-pos/reporterin',
+                mediaTypes: {
+                    video: {
+                        sizes: [[300,50],[300,250],[320,180]]
+                    }
+                },
+                bids: [
+                    {
+                        bidder: 'goldbach',
+                        params: {
+                            publisherId: 'de-20minuten.ch_ios',
+                            customTargeting: {
+                                gpsenabled: "false",
+                                fr: "false",
+                                pagetype: "story",
+                                darkmode: "false",
+                                userloggedin: "false",
+                                iosbuild: "24110",
+                                language: "de",
+                                storyId: "103211763",
+                                connection: "wifi"
+                            },
+                            video: {
+                                maxduration: 30
+                            }
+                        }
+                    }
+                ]
+            }
+        ];
 
-    // Initialize ad units with Prebid
-    pbjs.addAdUnits(adUnits);
+        // Set Prebid configurations with PPID (Publisher Provided Identifier) support
+        pbjs.setConfig({
+            debug: true,
+            cache: {
+                url: 'https://prebid.adnxs.com/pbc/v1/cache'
+            },
+            ortb2: {
+                device: {
+                    ifa: "23575619-ef35-4908-b468-ffc4000cdf07",
+                    geo: {
+                        lat: 47.318054,
+                        lon: 8.582883,
+                        zip: "8700"
+                    },
+                    connectiontype: 6
+                }
+            },
+            timeout: 2000,
+            userSync: {
+                userIds: [
+                    {
+                        name: "pubProvidedId",
+                        params: {
+                            eids: [
+                                {
+                                    source: "oneid.live",
+                                    uids: [
+                                        {
+                                            id: "0d862e87-14e9-47a4-9e9b-886b7d7a9d1b",
+                                            atype: 1,
+                                            ext: {
+                                                stype: "ppuid"
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    source: "goldbach.com",
+                                    uids: [
+                                        {
+                                            id: "aa07ead5044f47bb28894ffa0346ed2c",
+                                            atype: 1,
+                                            ext: {
+                                                stype: "ppuid"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                auctionDelay: 50
+            }
+        });
 
-    // Request bids
-    pbjs.requestBids({
-        bidsBackHandler: function(bidResponses) {
-            console.log('Bid responses:', bidResponses);
-            pbjs.setTargetingForGPTAsync();
-        }
-    });
+        // Initialize ad units with Prebid
+        pbjs.addAdUnits(adUnits);
+
+        // Request bids and render the highest bid
+        pbjs.requestBids({
+            bidsBackHandler: function (bids) {
+                pbjs.getHighestCpmBids().forEach(function (bid) {
+                const adUnitElement = document.getElementById(bid.adUnitCode);
+
+                if (bid.renderer) {
+                    bid.renderer.render(bid);
+                } else if (adUnitElement) {
+                    adUnitElement.innerHTML = bid.ad;
+                }
+                });
+            }
+        });
+
     </script>
 </body>
 </html>

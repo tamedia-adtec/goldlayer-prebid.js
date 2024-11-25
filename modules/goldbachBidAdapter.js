@@ -1,13 +1,21 @@
 import * as utils from '../src/utils.js';
 import {BANNER, NATIVE, VIDEO} from '../src/mediaTypes.js';
 import { registerBidder } from '../src/adapters/bidderFactory.js';
+import {Renderer} from '../src/Renderer.js';
 
-/* Constants */
+/* General config */
 const IS_LOCAL_MODE = false;
 const BIDDER_CODE = 'goldbach';
 const GVLID = 580;
 const URL = 'https://goldlayer-api.prod.gbads.net/bid/pbjs';
 const URL_LOCAL = 'http://localhost:3000/bid/pbjs';
+
+/* Renderer URLs */
+const RENDERERS = {
+  OUTSTREAM: 'https://goldplayer.prod.gbads.net/scripts/goldplayer.js'
+};
+
+/* Targeting mapping */
 const TARGETING_KEYS = {
   // request level
   GEO_LAT: 'lat',
@@ -167,8 +175,8 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
     const slot = {
       id: validBidRequest?.adUnitCode,
       sizes: [
-        ...validBidRequest?.sizes || [],
-        ...(validBidRequest.mediaTypes?.[VIDEO] ? [[640, 480]] : [])
+        ...(validBidRequest.sizes || []),
+        ...(validBidRequest.mediaTypes?.[VIDEO]?.sizes ? validBidRequest.mediaTypes[VIDEO].sizes : [])
       ],
       targetings: {
         ...validBidRequest?.params?.customTargeting,
@@ -184,11 +192,41 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
   return requestData;
 }
 
+const getRendererForBidRequest = (bidRequest, creative) => {
+  utils.logInfo(creative.contextType, !!bidRequest.mediaTypes?.[VIDEO]);
+  if (!bidRequest.renderer && creative.contextType === 'video_outstream') {
+    utils.logInfo(!!creative.vastUrl, !!creative.vastXml);
+
+    if (!creative.vastUrl && !creative.vastXml) return undefined;
+
+    const renderer = Renderer.install({id: bidRequest.bidId, url: RENDERERS.OUTSTREAM, adUnitCode: bidRequest.adUnitCode});
+    const options = {
+      vastUrl: creative.vastUrl,
+      vastXML: creative.vastXml,
+      autoplay: false,
+      muted: false,
+      controls: true,
+      styling: { progressbarColor: '#000' },
+      videoHeight: Math.min(window.innerWidth / 16 * 9, 300),
+      videoVerticalHeight: Math.min(window.innerWidth / 9 * 16, 600),
+      divContainerID: bidRequest.adUnitCode,
+    };
+
+    renderer.setRender((bid) => {
+      bid.renderer.push(() => {
+        if (window.Goldplayer) {
+          const player = new window.Goldplayer(options);
+          player.play();
+        }
+      });
+    })
+  }
+  return undefined;
+}
+
 const convertProprietaryResponseToBidResponses = (serverResponse, bidRequest) => {
   const bidRequests = bidRequest?.bidderRequest?.bids || [];
   const creativeGroups = serverResponse?.body?.creatives || {};
-
-  utils.logInfo(bidRequest);
 
   return bidRequests.reduce((bidResponses, bidRequest) => {
     const matchingCreativeGroup = creativeGroups[bidRequest.adUnitCode] || [];
@@ -208,6 +246,7 @@ const convertProprietaryResponseToBidResponses = (serverResponse, bidRequest) =>
         vastXml: creative.vastXml,
         mediaType: creative.mediaType,
         meta: creative.meta,
+        renderer: getRendererForBidRequest(bidRequest, creative),
       };
     });
     return [...bidResponses, ...matchingBidResponses];
