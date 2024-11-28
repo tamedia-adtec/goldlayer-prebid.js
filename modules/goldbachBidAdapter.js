@@ -1,7 +1,7 @@
-import * as utils from '../src/utils.js';
-import {BANNER, NATIVE, VIDEO} from '../src/mediaTypes.js';
+import { ajax } from '../src/ajax.js';
+import { BANNER, NATIVE, VIDEO } from '../src/mediaTypes.js';
 import { registerBidder } from '../src/adapters/bidderFactory.js';
-import {Renderer} from '../src/Renderer.js';
+import { Renderer } from '../src/Renderer.js';
 
 /* General config */
 const IS_LOCAL_MODE = false;
@@ -9,10 +9,26 @@ const BIDDER_CODE = 'goldbach';
 const GVLID = 580;
 const URL = 'https://goldlayer-api.prod.gbads.net/bid/pbjs';
 const URL_LOCAL = 'http://localhost:3000/bid/pbjs';
+const LOGGING_PERCENTAGE_REGULAR = 0.0001;
+const LOGGING_PERCENTAGE_ERROR = 0.001;
+const LOGGING_URL = 'https://l.da-services.ch/pb';
 
-/* Renderer URLs */
-const RENDERERS = {
-  OUTSTREAM: 'https://goldplayer.prod.gbads.net/scripts/goldplayer.js'
+/* Renderer settings */
+const RENDERER_OPTIONS = {
+  OUTSTREAM_GP: {
+    MIN_HEIGHT: 300,
+    MIN_WIDTH: 300,
+    URL: 'https://goldplayer.dev.gbads.net/scripts/goldplayer.js'
+  }
+};
+
+/* Event types */
+const EVENTS = {
+  BID_WON: 'bid_won',
+  TARGETING: 'targeting_set',
+  RENDER: 'creative_render',
+  TIMEOUT: 'timeout',
+  ERROR: 'error'
 };
 
 /* Targeting mapping */
@@ -92,7 +108,7 @@ const convertToCustomSlotTargeting = (validBidRequest) => {
 const convertToProprietaryData = (validBidRequests, bidderRequest) => {
   const requestData = {
     mock: false,
-    debug: false,
+    debug: true,
     timestampStart: undefined,
     timestampEnd: undefined,
     config: {
@@ -193,33 +209,33 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
 }
 
 const getRendererForBidRequest = (bidRequest, creative) => {
-  utils.logInfo(creative.contextType, !!bidRequest.mediaTypes?.[VIDEO]);
   if (!bidRequest.renderer && creative.contextType === 'video_outstream') {
-    utils.logInfo(!!creative.vastUrl, !!creative.vastXml);
-
     if (!creative.vastUrl && !creative.vastXml) return undefined;
 
-    const renderer = Renderer.install({id: bidRequest.bidId, url: RENDERERS.OUTSTREAM, adUnitCode: bidRequest.adUnitCode});
-    const options = {
-      vastUrl: creative.vastUrl,
-      vastXML: creative.vastXml,
-      autoplay: false,
-      muted: false,
-      controls: true,
-      styling: { progressbarColor: '#000' },
-      videoHeight: Math.min(window.innerWidth / 16 * 9, 300),
-      videoVerticalHeight: Math.min(window.innerWidth / 9 * 16, 600),
-      divContainerID: bidRequest.adUnitCode,
-    };
+    const config = { documentResolver: (_, sourceDocument, renderDocument) => renderDocument ?? sourceDocument };
+    const renderer = Renderer.install({id: bidRequest.bidId, url: RENDERER_OPTIONS.OUTSTREAM_GP.URL, adUnitCode: bidRequest.adUnitCode, config});
 
-    renderer.setRender((bid) => {
+    renderer.setRender((bid, doc) => {
       bid.renderer.push(() => {
-        if (window.Goldplayer) {
-          const player = new window.Goldplayer(options);
+        if (doc.defaultView?.GoldPlayer) {
+          const options = {
+            vastUrl: creative.vastUrl,
+            vastXML: creative.vastXml,
+            autoplay: false,
+            muted: false,
+            controls: true,
+            styling: { progressbarColor: '#000' },
+            videoHeight: Math.min(doc.defaultView?.innerWidth / 16 * 9, RENDERER_OPTIONS.OUTSTREAM_GP.MIN_HEIGHT),
+            videoVerticalHeight: Math.min(doc.defaultView?.innerWidth / 9 * 16, RENDERER_OPTIONS.OUTSTREAM_GP.MIN_WIDTH),
+          };
+          const GP = doc.defaultView.GoldPlayer;
+          const player = new GP(options);
           player.play();
         }
       });
-    })
+    });
+
+    return renderer;
   }
   return undefined;
 }
@@ -253,6 +269,18 @@ const convertProprietaryResponseToBidResponses = (serverResponse, bidRequest) =>
   }, []);
 }
 
+/* Logging */
+const sendLog = (data, percentage = 0.0001) => {
+  if (Math.random() > percentage) return;
+  const encodedData = `data=${window.btoa(JSON.stringify({...data, source: 'goldbach_pbjs', projectedAmount: (1 / percentage)}))}`;
+  ajax(LOGGING_URL, null, encodedData, {
+    withCredentials: false,
+    method: 'POST',
+    crossOrigin: true,
+    contentType: 'application/x-www-form-urlencoded',
+  });
+}
+
 export const spec = {
   code: BIDDER_CODE,
   gvlid: GVLID,
@@ -275,23 +303,52 @@ export const spec = {
     }];
   },
   interpretResponse: function (serverResponse, request) {
-    const bids = convertProprietaryResponseToBidResponses(serverResponse, request);
-    return bids
+    return convertProprietaryResponseToBidResponses(serverResponse, request);
   },
-  // Skip for now
-  onTimeout: function(timeoutData) {},
-  // Skip for now
-  onBidWon: function(bid) {},
-  // Skip for now
+  onTimeout: function(timeoutData) {
+    const payload = {
+      event: EVENTS.TIMEOUT,
+      error: timeoutData,
+    };
+    sendLog(payload, LOGGING_PERCENTAGE_ERROR);
+  },
+  onBidWon: function(bid) {
+    const payload = {
+      event: EVENTS.BID_WON,
+      adUnitCode: bid.adUnitCode,
+      adId: bid.adId,
+      mediaType: bid.mediaType,
+      size: bid.size,
+    };
+    sendLog(payload, LOGGING_PERCENTAGE_REGULAR);
+  },
   onSetTargeting: function(bid) {
-    utils.logInfo('Targeting set', bid);
+    const payload = {
+      event: EVENTS.TARGETING,
+      adUnitCode: bid.adUnitCode,
+      adId: bid.adId,
+      mediaType: bid.mediaType,
+      size: bid.size,
+    };
+    sendLog(payload, LOGGING_PERCENTAGE_REGULAR);
   },
-  // Forward error to logging server / endpoint
-  onBidderError: function({ error, bidderRequest }) {
-    utils.logError('Error in goldbach adapter', error);
+  onBidderError: function({ error }) {
+    const payload = {
+      event: EVENTS.ERROR,
+      error: error,
+    };
+    sendLog(payload, LOGGING_PERCENTAGE_ERROR);
   },
-  // Forward success to logging server / endpoint
-  onAdRenderSucceeded: function(bid) {},
+  onAdRenderSucceeded: function(bid) {
+    const payload = {
+      event: EVENTS.RENDER,
+      adUnitCode: bid.adUnitCode,
+      adId: bid.adId,
+      mediaType: bid.mediaType,
+      size: bid.size,
+    };
+    sendLog(payload, LOGGING_PERCENTAGE_REGULAR);
+  },
 }
 
 registerBidder(spec);
