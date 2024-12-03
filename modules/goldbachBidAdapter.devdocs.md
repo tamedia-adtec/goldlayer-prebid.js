@@ -36,4 +36,4 @@ The Goldbach bidding adapter requires an individualized `'publisherId'` and appr
 
 | Name          | Scope    | Description              | Example                   | Type      |
 |---------------|----------|--------------------------|---------------------------|-----------|
-| `publisherId` | required | Publisher Environment ID | `'example.com_de_ios'`    |  `string` |
+| `publisherId` | required | Publisher Environment ID | `example.com_de_ios`      |  `string` |

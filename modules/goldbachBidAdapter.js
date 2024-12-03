@@ -18,7 +18,7 @@ const RENDERER_OPTIONS = {
   OUTSTREAM_GP: {
     MIN_HEIGHT: 300,
     MIN_WIDTH: 300,
-    URL: 'https://goldplayer.dev.gbads.net/scripts/goldplayer.js'
+    URL: 'https://goldplayer.prod.gbads.net/scripts/goldplayer.js'
   }
 };
 
@@ -39,7 +39,25 @@ const TARGETING_KEYS = {
   GEO_ZIP: 'zip',
   CONNECTION_TYPE: 'connection',
   // slot level
-  VIDEO_DURATION: 'duration'
+  VIDEO_DURATION: 'duration',
+};
+
+/* Native mapping */
+export const OPENRTB = {
+  NATIVE: {
+    IMAGE_TYPE: {
+      ICON: 1,
+      MAIN: 3,
+    },
+    ASSET_ID: {
+      TITLE: 1,
+      IMAGE: 2,
+      ICON: 3,
+      BODY: 4,
+      SPONSORED: 5,
+      CTA: 6
+    }
+  }
 };
 
 /* Mapping */
@@ -92,7 +110,7 @@ const convertToCustomTargeting = (bidderRequest) => {
 const convertToCustomSlotTargeting = (validBidRequest) => {
   const customTargeting = {};
 
-  // video duration
+  // Video duration
   if (validBidRequest.mediaTypes?.[VIDEO]) {
     if (validBidRequest.params?.video?.maxduration) {
       const duration = validBidRequest.params?.video?.maxduration;
@@ -208,7 +226,7 @@ const convertToProprietaryData = (validBidRequests, bidderRequest) => {
   return requestData;
 }
 
-const getRendererForBidRequest = (bidRequest, creative) => {
+const getRendererForBid = (bidRequest, creative) => {
   if (!bidRequest.renderer && creative.contextType === 'video_outstream') {
     if (!creative.vastUrl && !creative.vastXml) return undefined;
 
@@ -240,6 +258,50 @@ const getRendererForBidRequest = (bidRequest, creative) => {
   return undefined;
 }
 
+const getNativeAssetsForBid = (bidRequest, creative) => {
+  if (creative.contextType === 'native' && creative.ad) {
+    const nativeAssets = JSON.parse(creative.ad);
+    const result = {
+      clickUrl: encodeURI(nativeAssets?.link?.url),
+      impressionTrackers: nativeAssets?.imptrackers,
+      clickTrackers: nativeAssets?.clicktrackers,
+      javascriptTrackers: nativeAssets?.jstracker && [nativeAssets.jstracker],
+    };
+    (nativeAssets?.assets || []).forEach(asset => {
+      switch (asset.id) {
+        case OPENRTB.NATIVE.ASSET_ID.TITLE:
+          result.title = asset.title?.text;
+          break;
+        case OPENRTB.NATIVE.ASSET_ID.IMAGE:
+          result.image = {
+            url: encodeURI(asset.img?.url),
+            width: asset.img?.w,
+            height: asset.img?.h
+          };
+          break;
+        case OPENRTB.NATIVE.ASSET_ID.ICON:
+          result.icon = {
+            url: encodeURI(asset.img.url),
+            width: asset.img?.w,
+            height: asset.img?.h
+          };
+          break;
+        case OPENRTB.NATIVE.ASSET_ID.BODY:
+          result.body = asset.data?.value;
+          break;
+        case OPENRTB.NATIVE.ASSET_ID.SPONSORED:
+          result.sponsoredBy = asset.data?.value;
+          break;
+        case OPENRTB.NATIVE.ASSET_ID.CTA:
+          result.cta = asset.data?.value;
+          break;
+      }
+    });
+    return result;
+  }
+  return undefined;
+}
+
 const convertProprietaryResponseToBidResponses = (serverResponse, bidRequest) => {
   const bidRequests = bidRequest?.bidderRequest?.bids || [];
   const creativeGroups = serverResponse?.body?.creatives || {};
@@ -262,7 +324,8 @@ const convertProprietaryResponseToBidResponses = (serverResponse, bidRequest) =>
         vastXml: creative.vastXml,
         mediaType: creative.mediaType,
         meta: creative.meta,
-        renderer: getRendererForBidRequest(bidRequest, creative),
+        native: getNativeAssetsForBid(bidRequest, creative),
+        renderer: getRendererForBid(bidRequest, creative),
       };
     });
     return [...bidResponses, ...matchingBidResponses];

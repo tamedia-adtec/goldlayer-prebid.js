@@ -1,9 +1,11 @@
 import { expect } from 'chai';
+import sinon from 'sinon';
 import { spec } from 'modules/goldbachBidAdapter.js';
 import { newBidder } from 'src/adapters/bidderFactory.js';
 import { auctionManager } from 'src/auctionManager.js';
 import { deepClone } from 'src/utils.js';
 import { VIDEO } from 'src/mediaTypes.js';
+import * as ajaxLib from 'src/ajax.js';
 
 const BIDDER_NAME = 'goldbach'
 const ENDPOINT = 'https://goldlayer-api.prod.gbads.net/bid/pbjs';
@@ -41,6 +43,58 @@ let eids = [
     ]
   }
 ];
+
+const validNativeAd = {
+  link: {
+    url: 'https://example.com/cta',
+  },
+  imptrackers: [
+    'https://example.com/impression1',
+    'https://example.com/impression2',
+  ],
+  assets: [
+    {
+      id: 1,
+      title: {
+        text: 'Amazing Product - Don’t Miss Out!',
+      },
+    },
+    {
+      id: 2,
+      img: {
+        url: 'https://example.com/main-image.jpg',
+        w: 300,
+        h: 250,
+      },
+    },
+    {
+      id: 3,
+      img: {
+        url: 'https://example.com/icon-image.jpg',
+        w: 50,
+        h: 50,
+      },
+    },
+    {
+      id: 4,
+      data: {
+        value: 'This is the description of the product. Its so good youll love it!',
+      },
+    },
+    {
+      id: 5,
+      data: {
+        value: 'Sponsored by ExampleBrand',
+      },
+    },
+    {
+      id: 6,
+      data: {
+        value: 'Shop Now',
+      },
+    },
+  ],
+};
 
 /* Ortb2 bid information */
 let ortb2 = {
@@ -124,6 +178,50 @@ let validBidRequests = [
       video: {
         maxduration: 30,
       },
+      customTargeting: {
+        language: 'de'
+      }
+    }
+  },
+  {
+    bidder: BIDDER_NAME,
+    adUnitCode: '/46753895/publisher.ch/inside-full-content-pos1/pbjs-test/native',
+    adUnitId: 'c3400db6-c4c5-465e-bf67-1545751944b9',
+    auctionId: '7570fb24-810d-4c26-9f9c-acd0b6977f60',
+    bidId: '3d52a1909b972c',
+    bidderRequestId: '2b63a1826ab946',
+    userIdAsEids: eids,
+    ortb2: ortb2,
+    mediaTypes: {
+      native: {
+        title: {
+          required: true,
+          len: 50
+        },
+        image: {
+          required: true,
+          sizes: [300, 157]
+        },
+        icon: {
+          required: true,
+          sizes: [30, 30]
+        },
+        body: {
+          required: true,
+          len: 150
+        },
+        cta: {
+          required: true,
+          len: 15
+        },
+        sponsoredBy: {
+          required: true,
+          len: 25
+        },
+      }
+    },
+    params: {
+      publisherId: 'de-publisher.ch-ios',
       customTargeting: {
         language: 'de'
       }
@@ -227,7 +325,8 @@ let validCreativeResponse = {
         ttl: 3600,
         mediaType: 'native',
         netRevenue: true,
-        ad: 'native-ad',
+        contextType: 'native',
+        ad: JSON.stringify(validNativeAd),
         meta: {
           advertiserDomains: ['example.com'],
           mediaType: 'native'
@@ -242,6 +341,7 @@ let validCreativeResponse = {
         ttl: 3600,
         mediaType: 'banner',
         netRevenue: true,
+        contextType: 'banner',
         ad: 'banner-ad',
         meta: {
           advertiserDomains: ['example.com'],
@@ -259,10 +359,29 @@ let validCreativeResponse = {
         ttl: 3600,
         mediaType: 'video',
         netRevenue: true,
+        contextType: 'video_preroll',
         ad: 'video-ad',
         meta: {
           advertiserDomains: ['example.com'],
           mediaType: 'video'
+        }
+      }
+    ],
+    '/46753895/publisher.ch/inside-full-content-pos1/pbjs-test/native': [
+      {
+        cpm: 10.2,
+        currency: 'USD',
+        width: 1,
+        height: 1,
+        creativeId: '4',
+        ttl: 3600,
+        mediaType: 'native',
+        netRevenue: true,
+        contextType: 'native',
+        ad: JSON.stringify(validNativeAd),
+        meta: {
+          advertiserDomains: ['example.com'],
+          mediaType: 'native'
         }
       }
     ],
@@ -286,6 +405,17 @@ let validRequest = {
 
 describe('GoldbachBidAdapter', function () {
   const adapter = newBidder(spec);
+  let ajaxStub;
+
+  beforeEach(() => {
+    ajaxStub = sinon.stub(ajaxLib, 'ajax');
+    sinon.stub(Math, 'random').returns(0);
+  });
+
+  afterEach(() => {
+    ajaxStub.restore();
+    Math.random.restore();
+  });
 
   describe('inherited functions', function () {
     it('exists and is a function', function () {
@@ -348,7 +478,7 @@ describe('GoldbachBidAdapter', function () {
 
       expect(payload.slots).to.exist;
       expect(Array.isArray(payload.slots)).to.be.true;
-      expect(payload.slots.length).to.equal(2);
+      expect(payload.slots.length).to.equal(3);
       expect(payload.slots[0].id).to.equal(bidRequests[0].adUnitCode);
       expect(Array.isArray(payload.slots[0].sizes)).to.be.true;
       expect(payload.slots[0].sizes.length).to.equal(bidRequests[0].sizes.length);
@@ -365,7 +495,7 @@ describe('GoldbachBidAdapter', function () {
         sizes: [],
         mediaTypes: {
           [VIDEO]: {
-            sizes: []
+            sizes: [[640, 480]]
           }
         }
       }], bidderRequest);
@@ -506,8 +636,8 @@ describe('GoldbachBidAdapter', function () {
       expect(payload.slots[0].targetings['duration']).to.not.exist;
       expect(payload.slots[1].targetings['duration']).to.exist;
       expect(payload.slots[1].targetings['duration']).to.equal('XL');
-      expect(payload.slots[2].targetings['duration']).to.equal('M');
-      expect(payload.slots[3].targetings['duration']).to.equal('XXL');
+      expect(payload.slots[3].targetings['duration']).to.equal('M');
+      expect(payload.slots[4].targetings['duration']).to.equal('XXL');
     });
 
     it('should set mapped connection targetings on request', function () {
@@ -592,7 +722,7 @@ describe('GoldbachBidAdapter', function () {
 
       // bidRequests mapping
       expect(payload.slots).to.exist;
-      expect(payload.slots.length).to.equal(2);
+      expect(payload.slots.length).to.equal(3);
       expect(payload.slots[0].targetings).to.exist
       expect(payload.slots[1].targetings).to.exist
     });
@@ -606,9 +736,77 @@ describe('GoldbachBidAdapter', function () {
       const response = spec.interpretResponse(bidResponse, request);
 
       expect(response).to.exist;
-      expect(response.length).to.equal(3);
+      expect(response.length).to.equal(4);
       expect(response.filter(bid => bid.requestId === validBidRequests[0].bidId).length).to.equal(2)
       expect(response.filter(bid => bid.requestId === validBidRequests[1].bidId).length).to.equal(1)
+    });
+
+    it('should attach a custom video renderer ', function () {
+      let request = deepClone(validRequest);
+      let bidResponse = deepClone({body: validCreativeResponse});
+      bidResponse.body.creatives[validBidRequests[1].adUnitCode][0].mediaType = 'video';
+      bidResponse.body.creatives[validBidRequests[1].adUnitCode][0].vastXml = '<VAST></VAST>';
+      bidResponse.body.creatives[validBidRequests[1].adUnitCode][0].contextType = 'video_outstream';
+
+      const response = spec.interpretResponse(bidResponse, request);
+
+      expect(response).to.exist;
+      expect(response.filter(bid => !!bid.renderer).length).to.equal(1);
+    });
+
+    it('should not attach a custom video renderer when VAST url/xml is missing', function () {
+      let request = deepClone(validRequest);
+      let bidResponse = deepClone({body: validCreativeResponse});
+      bidResponse.body.creatives[validBidRequests[1].adUnitCode][0].mediaType = 'video';
+      bidResponse.body.creatives[validBidRequests[1].adUnitCode][0].contextType = 'video_outstream';
+
+      const response = spec.interpretResponse(bidResponse, request);
+
+      expect(response).to.exist;
+      expect(response.filter(bid => !!bid.renderer).length).to.equal(0);
+    });
+  });
+
+  describe('sendLogs', function () {
+    it('should not send logs when percentage is not met', function () {
+      Math.random.returns(1);
+      spec.onTimeout([]);
+      expect(ajaxStub.calledOnce).to.be.false;
+    });
+  });
+
+  describe('onTimeout', function () {
+    it('should send logs on timeout', function () {
+      spec.onTimeout([]);
+      expect(ajaxStub.calledOnce).to.be.true;
+    });
+  });
+
+  describe('onBidWon', function () {
+    it('should send logs on won', function () {
+      spec.onBidWon([]);
+      expect(ajaxStub.calledOnce).to.be.true;
+    });
+  });
+
+  describe('onSetTargeting', function () {
+    it('should send logs on targeting', function () {
+      spec.onSetTargeting([]);
+      expect(ajaxStub.calledOnce).to.be.true;
+    });
+  });
+
+  describe('onBidderError', function () {
+    it('should send logs on bidder error', function () {
+      spec.onBidderError([]);
+      expect(ajaxStub.calledOnce).to.be.true;
+    });
+  });
+
+  describe('onAdRenderSucceeded', function () {
+    it('should send logs on render succeeded', function () {
+      spec.onAdRenderSucceeded([]);
+      expect(ajaxStub.calledOnce).to.be.true;
     });
   });
 });

@@ -10,98 +10,77 @@ Maintainer: benjamin.brachmann@goldbach.com
 
 ## Description
 
-Module that connects to Goldbach SSP demand sources
+Module that connects to Goldbach SSP demand sources.
+
+```shell
+gulp build --modules=goldbachBidAdapter,userId,pubProvidedIdSystem
+```
 
 ## Test Parameters
 
 ```javascript
-    var adUnits = [{
-                code: 'placementId',
-                      mediaTypes: {
-                          banner: {
-                              sizes: [[300, 250], [300,600]]
-                              }
-                              },
-                bids: [{
-                        bidder: 'gothamads',
-                        params: {
-                                placementId: 'hash',
-                            accountId: 'accountId'
-                        }
-                    }]
-                },
-                {
-                    code: 'native_example',
-                    // sizes: [[1, 1]],
-                    mediaTypes: {
-                      native: {
-                        title: {
-                          required: true,
-                          len: 800
-                        },
-                        image: {
-                          required: true,
-                            len: 80
-                        },
-                        sponsoredBy: {
-                            required: true
-                        },
-                        clickUrl: {
-                            required: true
-                        },
-                        privacyLink: {
-                            required: false
-                        },
-                        body: {
-                            required: true
-                        },
-                        icon: {
-                            required: true,
-                            sizes: [50, 50]
-                        }
+    var adUnits = [
+        {
+            code: '/1235/example.com/video/video/example',
+                mediaTypes: {
+                    video: {
+                        sizes: [[640, 480]],
+                        maxduration: 30,
                     }
-
-                    },
-                    bids: [    {
-                            bidder: 'gothamads',
-                            params: {
-                                    placementId: 'hash',
-                            accountId: 'accountId'
-                            }
-                        }]
-            }, 
-            {
-    code: 'video1',
-    sizes: [640,480],
-    mediaTypes: { video: {
-      minduration:0,
-                maxduration:999,
-                boxingallowed:1,
-                skip:0,
-                mimes:[
-                    'application/javascript',
-                    'video/mp4'
-                ],
-                w:1920,
-                h:1080,
-                protocols:[
-                    2
-                ],
-                linearity:1,
-                api:[
-                    1,
-                    2
-                ]
-    } },
-    bids: [
-    {
-                bidder: 'gothamads',
-                params: {
-                        placementId: 'hash',
-                    accountId: 'accountId'
+                },
+            bids: [
+                {
+                    bidder: 'goldbach',
+                    params: {
+                        publisherId: 'goldbach_debug',
+                    }
                 }
-            }
-    ]
-  }
-            ];
+            ]
+        },
+        {
+            code: '/1235/example.com/inside-full-test-native/example',
+            sizes: [[1, 1]],
+            mediaTypes: {
+                native: {
+                    title: {
+                        required: true,
+                        len: 50
+                    },
+                    image: {
+                        required: true,
+                        sizes: [300, 157]
+                    },
+                    icon: {
+                        required: true,
+                        sizes: [30, 30]
+                    }
+                }
+            },
+            bids: [
+                {
+                    bidder: 'goldbach',
+                    params: {
+                        publisherId: 'goldbach_debug',
+                    }
+                }
+            ]
+        }, 
+        {
+            code: '/1235/example.com/inside-full-test-banner/example',
+            sizes: [[300, 250]],
+            mediaTypes: {
+                banner: {
+                    sizes: [[300, 250]],
+                }
+            },
+            bids: [
+                {
+                    bidder: 'goldbach',
+                    params: {
+                        publisherId: 'goldbach_debug',
+                    }
+                }
+            ]
+        }, 
+    ];
 ```
